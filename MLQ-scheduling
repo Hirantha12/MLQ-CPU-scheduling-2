@@ -1,0 +1,83 @@
+class Process:
+    def __init__(self, pid, burst_time, user_process):
+        self.pid = pid
+        self.burst_time = burst_time
+        self.user_process = user_process
+        self.waiting_time = 0
+        self.turnaround_time = 0
+
+
+def input_processes():
+    # Function to input process details from the user
+    n = int(input("Enter the number of processes: "))
+    processes = []
+
+    for i in range(n):
+        pid = i
+        user_process = int(input("System process/User Process (0/1): "))
+        burst_time = int(input(f"Enter the Burst Time of Process {pid}: "))
+        processes.append(Process(pid, burst_time, user_process))
+
+    return processes
+
+
+def simulate_multilevel_queue_scheduling(processes):
+    # Function to simulate the multilevel queue scheduling
+    # Divides processes into system and user queues and applies different time quantums
+    system_queue = [process for process in processes if process.user_process == 0]
+    user_queue = [process for process in processes if process.user_process == 1]
+
+    time_quantum_system = 2
+    time_quantum_user = 4
+
+    simulate_queue(system_queue, time_quantum_system)
+    simulate_queue(user_queue, time_quantum_user)
+
+    print_results(processes)
+
+
+def simulate_queue(queue, time_quantum):
+    # Function to simulate the execution of processes in a queue with a given time quantum
+    time = 0
+    while queue:
+        current_process = queue.pop(0)
+
+        if current_process.burst_time <= time_quantum:
+            # If process can complete within the time quantum
+            time += current_process.burst_time
+            current_process.turnaround_time = time
+        else:
+            # If process needs more time, adjust waiting time and enqueue again
+            current_process.waiting_time = time
+            time += time_quantum
+            current_process.burst_time -= time_quantum
+            queue.append(current_process)
+
+    # Set waiting time and turnaround time for remaining processes in the queue
+    for process in queue:
+        process.waiting_time = time
+        time += process.burst_time
+        process.turnaround_time = time
+
+
+def print_results(processes):
+    # Function to print the results of the simulation, including average waiting and turnaround times
+    print("PROCESS\tSYSTEM/USER PROCESS\tBURST TIME\tWAITING TIME\tTURNAROUND TIME")
+
+    total_waiting_time = 0
+    total_turnaround_time = 0
+
+    for process in processes:
+        print(f"{process.pid}\t\t{process.user_process}\t\t\t{process.burst_time}\t\t\t{process.waiting_time}\t\t\t{process.turnaround_time}")
+
+        total_waiting_time += process.waiting_time
+        total_turnaround_time += process.turnaround_time
+
+    n = len(processes)
+    print(f"\nAverage Waiting Time is: {total_waiting_time / n}")
+    print(f"Average Turnaround Time is: {total_turnaround_time / n}")
+
+
+if __name__ == "__main__":
+    processes = input_processes()
+    simulate_multilevel_queue_scheduling(processes)
